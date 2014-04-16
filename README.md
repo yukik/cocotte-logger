@@ -8,7 +8,7 @@ cocotte-logger
 # 使用例
 
 ```javascript:example.js
-var logger = require('cocotte-logger);
+var logger = require('cocotte-logger');
 logger('message');
 ```
 
