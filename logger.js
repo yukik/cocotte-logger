@@ -11,11 +11,11 @@
 /**
  * Module dependencies
  */
-var path = require('path')
-  , moment = require('moment')
-  , fs = require('fs-extra')
-  , is = require('cocotte-is')
-  , EOL = require('os').EOL;
+var path = require('path');
+var moment = require('moment');
+var fs = require('fs-extra');
+var is = require('cocotte-is');
+var EOL = require('os').EOL;
 
 /**
  * [exports]
@@ -34,58 +34,58 @@ var path = require('path')
  */
 var logger = function logger (message, file, options) {
 
-	// file省略、オプション指定時
-	if (is(Object, file)) {
-		options = file;
-		file = null;
-	}
+  // file省略、オプション指定時
+  if (is(Object, file)) {
+    options = file;
+    file = null;
+  }
 
-	if (message === void 0) {
-		message = '';
-	}
+  if (message === void 0) {
+    message = '';
+  }
 
-	options = options || {};
+  options = options || {};
 
-	var isErr = message instanceof Error
-	  , time = isErr || options.time ? moment().format('YYYY-MM-DD HH:mm:ss ') : ''
-	  , depth = options.depth || 1
-	  , linefeed = options.linefeed === false ? '' : EOL;
+  var isErr = message instanceof Error;
+  var time = isErr || options.time ? moment().format('YYYY-MM-DD HH:mm:ss ') : '';
+  var depth = options.depth || 1;
+  var linefeed = options.linefeed === false ? '' : EOL;
 
-	/*
-	 * ファイル
-	 */
-	if (typeof file !== 'string') {
-		file = (isErr ? '[error]-' : '[log]-') + 'YYYY-MM-DD.[txt]';
-	}
-	file = moment().format(file);
+  /*
+   * ファイル
+   */
+  if (typeof file !== 'string') {
+    file = (isErr ? '[error]-' : '[log]-') + 'YYYY-MM-DD.[txt]';
+  }
+  file = moment().format(file);
 
 
-	// エラーオブジェクトのスタックトレースをメッセージに設定
-	if (isErr) {
-		message = EOL + message.stack + EOL;
+  // エラーオブジェクトのスタックトレースをメッセージに設定
+  if (isErr) {
+    message = EOL + message.stack + EOL;
 
-	// 関数の読み出し元のファイル名と行数をメッセージの後に追加
-	} else if (options.trace) {
-		var f = new Error('').stack
-				 .split(/[\r\n]+/)
-				 .map(function(s){return s.match(/(\/.+\.js):([0-9]+):([0-9]+)/);})
-				 .filter(function(s) {return !!s;});
-		if (depth < f.length) {
-			message += ' file:/' + f[depth][1] + ' (' + f[depth][2] + ')';
-		}
-	}
+  // 関数の読み出し元のファイル名と行数をメッセージの後に追加
+  } else if (options.trace) {
+    var f = new Error('').stack
+         .split(/[\r\n]+/)
+         .map(function(s){return s.match(/(\/.+\.js):([0-9]+):([0-9]+)/);})
+         .filter(function(s) {return !!s;});
+    if (depth < f.length) {
+      message += ' file:/' + f[depth][1] + ' (' + f[depth][2] + ')';
+    }
+  }
 
-	messages.push({
-		message: time + message + linefeed
-	  , file   : file
-	  , header : options.header
-	});
+  messages.push({
+    message: time + message + linefeed,
+    file: file,
+    header: options.header
+  });
 
-	if (!run) {
-		task();
-	}
+  if (!run) {
+    task();
+  }
 
-	return logger;
+  return logger;
 };
 
 /**
@@ -93,7 +93,7 @@ var logger = function logger (message, file, options) {
  * @property {Array} message
  */
 var messages = [];
-	// task関数実行中
+  // task関数実行中
 var run = false;
 
 /**
@@ -101,32 +101,32 @@ var run = false;
  * @method task
  */
 var task = function task () {
-	run = true;
-	var item = messages.shift();
-	if (!item) {
-		run = false;
+  run = true;
+  var item = messages.shift();
+  if (!item) {
+    run = false;
 
-	// 書き込み
-	} else if ('message' in item) {
-		if (output_) {
-			write(item);
-		} else {
-			task();
-		}
+  // 書き込み
+  } else if ('message' in item) {
+    if (output_) {
+      write(item);
+    } else {
+      task();
+    }
 
-	// パスの変更
-	} else if (item.path) {
-		p_ = path.resolve(p_, item.path);
-		task();
+  // パスの変更
+  } else if (item.path) {
+    p_ = path.resolve(p_, item.path);
+    task();
 
-	// 出力のコントロール
-	} else if ('output' in item) {
-		output_ = item.output;
-		task();
+  // 出力のコントロール
+  } else if ('output' in item) {
+    output_ = item.output;
+    task();
 
-	} else {
-		task();
-	}
+  } else {
+    task();
+  }
 };
 
 /*
@@ -136,44 +136,44 @@ var task = function task () {
  */
 var write = function write (item) {
 
-	var filename = item.file
-	  , message = item.message
-	  , header = item.header
-	  , file = path.join(p_, filename);
+  var filename = item.file;
+  var message = item.message;
+  var header = item.header;
+  var file = path.join(p_, filename);
 
-	fs.exists(file, function (exists) {
-		if (exists) {
-			fs.appendFile(file, message, function () {
-				task();
-			});
+  fs.exists(file, function (exists) {
+    if (exists) {
+      fs.appendFile(file, message, function () {
+        task();
+      });
 
-		} else {
-			if (header) {
-				message = header + EOL + message;
-			}
+    } else {
+      if (header) {
+        message = header + EOL + message;
+      }
 
-			var dir = path.dirname(file);
-			fs.exists(dir, function (exists) {
-				if (exists) {
-					fs.appendFile(file, message, function () {
-						task();
-					});
+      var dir = path.dirname(file);
+      fs.exists(dir, function (exists) {
+        if (exists) {
+          fs.appendFile(file, message, function () {
+            task();
+          });
 
-				} else {
-					fs.mkdirs(dir, function (err) {
-						if (err) {
-							console.error(err);
-							task();
-						} else {
-							fs.appendFile(file, message, function () {
-								task();
-							});
-						}
-					});
-				}
-			});
-		}
-	});
+        } else {
+          fs.mkdirs(dir, function (err) {
+            if (err) {
+              console.error(err);
+              task();
+            } else {
+              fs.appendFile(file, message, function () {
+                task();
+              });
+            }
+          });
+        }
+      });
+    }
+  });
 };
 
 /**
@@ -183,15 +183,18 @@ var write = function write (item) {
  */
 var p_ = path.join(path.dirname(process.argv[1]), 'logs');
 Object.defineProperty (logger, 'path', {
-	enumerable: true,
-	set: function(val) {
-		if (typeof val === 'string') {
-			messages.push({path: val});
-		}
-	},
-	get: function () {
-		return p_;
-	}
+  enumerable: true,
+  set: function(val) {
+    if (typeof val === 'string') {
+      messages.push({path: val});
+      if (!run) {
+        task();
+      }
+    }
+  },
+  get: function () {
+    return p_;
+  }
 });
 
 /**
@@ -201,15 +204,18 @@ Object.defineProperty (logger, 'path', {
  */
 var output_ = true;
 Object.defineProperty (logger, 'output', {
-	enumerable: true,
-	set: function(val) {
-		if (typeof val === 'boolean') {
-			messages.push({output: val});
-		}
-	},
-	get: function () {
-		return output_;
-	}
+  enumerable: true,
+  set: function(val) {
+    if (typeof val === 'boolean') {
+      messages.push({output: val});
+      if (!run) {
+        task();
+      }
+    }
+  },
+  get: function () {
+    return output_;
+  }
 });
 
 /**
@@ -219,8 +225,8 @@ Object.defineProperty (logger, 'output', {
  * @return logger
  */
 logger.trace = function trace (message) {
-	logger(message, {depth: 2, time: true, trace: true});
-	return logger;
+  logger(message, {depth: 2, time: true, trace: true});
+  return logger;
 };
 
 module.exports = exports = logger;

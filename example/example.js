@@ -9,7 +9,7 @@ logger();
 
 logger('message4', 'YYYY/MM/DD/[log.txt]'); // 年月日のディレクトリを作成し書き込み
 logger('message5', {time: true});      // 時間を追加
-logger('message6', {linefeed: false}); // 改行を含まない
+logger('message6', {linefeed: false}); // メッセージの後に改行しない
 logger('message7');
 
 logger.path = './subdir'; // ログファイルのパス変更
