@@ -1,10 +1,10 @@
-var logger = require('../logger.js');
+var logger = require('..');
 
 logger('message1', {header:'header-line1'}); // ヘッダー書き込まれる
 logger('message2', {header:'header-line2'}); // ヘッダー書き込まれない
 logger('message3');
 
-logger();
+logger('');
 
 
 logger('message4', 'YYYY/MM/DD/[log.txt]'); // 年月日のディレクトリを作成し書き込み
@@ -20,7 +20,8 @@ logger('message9');
 logger.path = '..'; // 元のパスに変更
 
 logger.trace('message10'); // 日付とファイル名および行数を付加
-logger(new Error('エラーだよ')); // エラーログファイルに書き込み
+
+logger(new Error('エラーだよ')); // スタックトレースを書き込み
 
 logger('message11');    // 書き込まれる
 logger.output = false;

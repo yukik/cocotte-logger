@@ -9,15 +9,14 @@
   "author": "Yuki Kurata <yuki.kurata@gmail.com>",
   "dependencies": {
     "moment": "*",
-    "fs-extra": "*",
-    "cocotte-is": "*"
+    "fs-extra": "*"
   },
   "repository": {
     "type": "git",
     "url": "git://github.com/yukik/cocotte-logger.git"
   },
   "main": "logger.js",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "scripts": {
     "test": "node ./test/test.js"
   },
