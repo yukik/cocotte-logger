@@ -49,7 +49,7 @@ var logger = function logger (message, file, options) {
   var linefeed = options.linefeed === false ? '' : EOL;
 
   // ファイル
-  file = now.format(file || '[log]-YYYY-MM-DD.[txt]');
+  file = now.format(file || current_format);
 
   // エラーオブジェクトのスタックトレースをメッセージに設定
   if (isErr) {
@@ -98,25 +98,32 @@ logger.stackShort = function stackShort (err) {
 logger.getTrace = function getTrace (caller) {
   var error = {};
   Error.captureStackTrace(error, caller || getTrace);
-  var info;
-  error
-    .stack.split(/[\r\n]+/)
-    .some(function(x){
-      var m = x.match(/at (.*) \((.+\.js):([0-9]+):([0-9]+)/);
-      if (m) {
-        info = {
-          name: m[1] === 'Object.<anonymous>' ? null : m[1],
-          file: m[2],
-          line: m[3],
-          column: m[4]
-        };
-        return true;
-      } else {
-        return false;
-      }
-    });
+  Error.prepareStackTrace = prepareStackTrace;
+  var info = error.stack;
+  Error.prepareStackTrace = ORIGINAL_PREPARE_STACK_TRACE;
   return info;
 };
+
+var ORIGINAL_PREPARE_STACK_TRACE = Error.prepareStackTrace;
+// カスタマイズされたstack取得用
+function prepareStackTrace(error, structuredStackTrace) {
+  var trace = structuredStackTrace[0];
+  if (trace) {
+    return {
+      name: trace.getMethodName() || trace.getFunctionName() || null,
+      file: trace.getFileName(),
+      line: trace.getLineNumber(),
+      column: trace.getColumnNumber()
+    };
+  } else {
+    return {
+      name: null,
+      file: 'unknown file',
+      line: 0,
+      column: 0
+    };
+  }
+}
 
 /**
  * 書込み待ち行列
@@ -240,7 +247,7 @@ Object.defineProperty (logger, 'path', {
  */
 var format = '[log]-YYYY-MM-DD.[txt]';
 var current_format = format;
-Object.defineProperty (logger, 'format', {
+Object.defineProperty (logger, 'file', {
   enumerable: true,
   set: function(val) {
     if (typeof val === 'string') {
